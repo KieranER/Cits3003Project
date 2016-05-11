@@ -67,7 +67,7 @@ typedef struct {
 } SceneObject;
 
 const int maxObjects = 1024; // Scenes with more than 1024 objects seem unlikely
-
+static float piradians = 3.14159265359/180;
 SceneObject sceneObjs[maxObjects]; // An array storing the objects currently in the scene.
 int nObjects = 0;    // How many objects are currenly in the scene.
 int currObject = -1; // The current object
@@ -339,7 +339,7 @@ void drawMesh(SceneObject sceneObj)
     // Set the model matrix - this should combine translation, rotation and scaling based on what's
     // in the sceneObj structure (see near the top of the program).
 
-    mat4 model = Translate(sceneObj.loc) * Scale(sceneObj.scale);
+    mat4 model = Translate(sceneObj.loc) * Scale(sceneObj.scale) * RotateX(sceneObj.angles[0]) * RotateY(sceneObj.angles[1])*RotateZ(sceneObj.angles[2]);
 
 
     // Set the model-view matrix for the shaders
@@ -368,7 +368,7 @@ void display( void )
     // Set the view matrix.  To start with this just moves the camera
     // backwards.  You'll need to add appropriate rotations.
 
-    view = Translate(0.0, 0.0, -viewDist);
+    view = RotateX(camRotUpAndOverDeg)*RotateY(-camRotSidewaysDeg)*Translate(viewDist*sin(-camRotSidewaysDeg*piradians),viewDist*sin(-camRotUpAndOverDeg*piradians),-viewDist*cos(camRotSidewaysDeg*piradians) - viewDist*cos(camRotUpAndOverDeg*piradians));
 
     SceneObject lightObj1 = sceneObjs[1]; 
     vec4 lightPosition = view * lightObj1.loc ;
