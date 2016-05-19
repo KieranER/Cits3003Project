@@ -1,4 +1,5 @@
 
+
 #include "Angel.h"
 
 #include <stdlib.h>
@@ -423,14 +424,19 @@ static void groundMenu(int id)
 static void adjustBrightnessY(vec2 by)
 {
     sceneObjs[toolObj].brightness+=by[0];
-    sceneObjs[toolObj].diffuse+=by[1];
+    sceneObjs[toolObj].loc[1]+=by[1];
 }
 
-// Custom function
-static void adjustBrightnessX(vec2 by)
+static void adjustDiffuseSpecular(vec2 by)
 {
-    sceneObjs[toolObj].shine+=by[0];
-    sceneObjs[toolObj].specular+=by[1];
+    sceneObjs[toolObj].diffuse += by[0];
+    sceneObjs[toolObj].specular += by[1];
+}
+
+static void adjustAbientShine(vec2 by)
+{
+    sceneObjs[toolObj].ambient += by[0];
+    sceneObjs[toolObj].shine += by[1];
 }
 
 static void adjustRedGreen(vec2 rg)
@@ -450,8 +456,7 @@ static void lightMenu(int id)
     deactivateTool();
     if (id == 70) {
         toolObj = 1;
-        //Edited so that adjustBrightnessX is no longer locXZ
-        setToolCallbacks(adjustBrightnessX, mat2(1.0,0.0,0.0,10.0),
+        setToolCallbacks(adjustLocXZ, camRotZ(),
                          adjustBrightnessY, mat2( 1.0, 0.0, 0.0, 10.0) );
 
     }
@@ -500,8 +505,8 @@ static void materialMenu(int id)
     // You'll need to fill in the remaining menu items here.
     else if(id == 20) {
         toolObj = currObject;
-        setToolCallbacks(adjustBrightnessY, mat2(1,0,0,1),
-                         adjustBrightnessX, mat2(1,0,0,1) );
+        setToolCallbacks(adjustAbientShine, mat2(1,0,0,1),
+                         adjustDiffuseSpecular, mat2(1,0,0,1) );
     }
     else {
         printf("Error in materialMenu\n");
@@ -612,8 +617,8 @@ void reshape( int width, int height )
     }
     else
     {
-        projection = Frustum(-nearDist,nearDist*(float)height/(float)width,
-                             -nearDist*(float)height/(float)width,nearDist,nearDist,100.0);
+        projection = Frustum(-nearDist,nearDist,-nearDist*(float)height/(float)width,
+                             nearDist*(float)height/(float)width,nearDist,100.0);
     }
 }
 
