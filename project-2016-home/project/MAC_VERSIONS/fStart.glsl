@@ -28,6 +28,9 @@ void main()
         specular = vec4(0.0,0.0,0.0,1.0);
     }
     
+    //adjust rgb values via a weighted average following luminosity standards for human vision, to create equivalent grayscale light for specular element.
+    float temp = 0.2989 * specular.x + 0.5870 * specular.y + 0.1140 * specular.z;
+    specular.xyz = vec3(temp,temp,temp);
     
     // globalAmbient is independent of distance from the light source
     vec4 globalAmbient = vec4(0.1, 0.1, 0.1,1.0);
