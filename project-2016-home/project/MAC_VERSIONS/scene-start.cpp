@@ -265,6 +265,14 @@ static void addObject(int id)
     glutPostRedisplay();
 }
 
+static void removeObject()
+{
+    toolObj = currObject = nObjects--;
+    setToolCallbacks(adjustLocXZ, camRotZ(),
+                     adjustScaleY, mat2(0.05, 0, 0, 10.0) );
+    glutPostRedisplay();
+}
+
 //------The init function-----------------------------------------------------
 
 void init( void )
@@ -306,6 +314,12 @@ void init( void )
     sceneObjs[1].scale = 0.1;
     sceneObjs[1].texId = 0; // Plain texture
     sceneObjs[1].brightness = 0.2; // The light's brightness is 5 times this (below).
+    
+    addObject(55); //Sphere for the second light
+    sceneObjs[2].loc = vec4(1.0,2.0,2.0,2.0);
+    sceneObjs[2].scale = 0.1;
+    sceneObjs[2].texId = 0;
+    sceneObjs[2].brightness = 0.2;
 
     addObject(rand() % numMeshes); // A test mesh
 
@@ -371,11 +385,15 @@ void display( void )
 
     view = RotateX(camRotUpAndOverDeg)*RotateY(-camRotSidewaysDeg)*Translate(viewDist*sin(-camRotSidewaysDeg*piradians),viewDist*sin(-camRotUpAndOverDeg*piradians),-viewDist*cos(camRotSidewaysDeg*piradians) - viewDist*cos(camRotUpAndOverDeg*piradians));
 
-    SceneObject lightObj1 = sceneObjs[1]; 
-    vec4 lightPosition = view * lightObj1.loc ;
+    SceneObject lightObj1 = sceneObjs[1];
+    SceneObject lightObj2 = sceneObjs[2];
+    vec4 lightPosition1 = view * lightObj1.loc ;
+    vec4 lightPosition2 = view * lightObj2.loc;
 
-    glUniform4fv( glGetUniformLocation(shaderProgram, "LightPosition"),
-                  1, lightPosition);
+    glUniform4fv( glGetUniformLocation(shaderProgram,"LightPosition1"),1,lightPosition1);
+    
+    glUniform4fv( glGetUniformLocation(shaderProgram,"LightPosition2"),1,lightPosition2);
+    
     CheckError();
 
     for (int i=0; i < nObjects; i++) {
@@ -465,6 +483,16 @@ static void lightMenu(int id)
         setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
                          adjustBlueBrightness, mat2(1.0, 0, 0, 1.0) );
     }
+    else if(id == 80) {
+        toolObj = 2;
+        setToolCallbacks(adjustLocXZ, camRotZ(),
+                         adjustBrightnessY, mat2( 1.0, 0.0, 0.0, 10.0) );
+    }
+    else if(id >= 81 && id <= 84){
+        toolObj = 2;
+        setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
+                         adjustBlueBrightness, mat2(1.0, 0, 0, 1.0) );
+    }
     else {
         printf("Error in lightMenu\n");
         exit(1);
@@ -513,6 +541,7 @@ static void materialMenu(int id)
     }
 }
 
+
 static void adjustAngleYX(vec2 angle_yx)
 {
     sceneObjs[currObject].angles[1]+=angle_yx[0];
@@ -539,6 +568,10 @@ static void mainmenu(int id)
         setToolCallbacks(adjustAngleYX, mat2(400, 0, 0, -400),
                          adjustAngleZTexscale, mat2(400, 0, 0, 15) );
     }
+    if(id == 5)
+    {
+        removeObject();
+    }
     if (id == 99) exit(0);
 }
 
@@ -562,6 +595,7 @@ static void makeMenu()
     glutCreateMenu(mainmenu);
     glutAddMenuEntry("Rotate/Move Camera",50);
     glutAddSubMenu("Add object", objectId);
+    glutAddMenuEntry("Remove Object", 5); //New
     glutAddMenuEntry("Position/Scale", 41);
     glutAddMenuEntry("Rotation/Texture Scale", 55);
     glutAddSubMenu("Material", materialMenuId);
