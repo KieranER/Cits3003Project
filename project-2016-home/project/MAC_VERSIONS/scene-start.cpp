@@ -265,6 +265,8 @@ static void addObject(int id)
     glutPostRedisplay();
 }
 
+//------Remove object from the scene------------------------------------------
+
 static void removeObject()
 {
     toolObj = currObject = nObjects--;
@@ -387,8 +389,9 @@ void display( void )
 
     SceneObject lightObj1 = sceneObjs[1];
     SceneObject lightObj2 = sceneObjs[2];
-    vec4 lightPosition1 = view * lightObj1.loc ;
+    vec4 lightPosition1 = view * lightObj1.loc;
     vec4 lightPosition2 = view * lightObj2.loc;
+
 
     glUniform4fv( glGetUniformLocation(shaderProgram,"LightPosition1"),1,lightPosition1);
     
