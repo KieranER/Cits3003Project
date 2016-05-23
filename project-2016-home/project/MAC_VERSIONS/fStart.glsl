@@ -15,8 +15,8 @@ void main()
 {
     vec3 N = normalize(fN);
     vec3 E = normalize(fE);
-    vec3 L1 = normalize(fL1);
-    vec3 L2 = normalize(fL2);
+    vec3 L1 = normalize(fL1-fE);
+    vec3 L2 = normalize(fL2-fE);
     
     vec3 H1 = normalize(L1+E);
     vec3 H2 = normalize(L2+E);
@@ -53,8 +53,8 @@ void main()
     vec4 globalAmbient = vec4(0.1, 0.1, 0.1, 1.0);
     
     //brightness fade by distance, doesn't affect global ambient
-    //float atten = (0.3*length(fL1)+0.2*length(fL1)*length(fL1));
-    float atten = 0.5;
+    float atten = (0.3*length(fL1)+0.2*length(fL1)*length(fL1));
+    //float atten = 0.5;
     
     
    
