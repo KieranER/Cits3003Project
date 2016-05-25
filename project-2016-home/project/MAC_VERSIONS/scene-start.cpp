@@ -416,7 +416,9 @@ void display( void )
     // Set the view matrix.  To start with this just moves the camera
     // backwards.  You'll need to add appropriate rotations.
 
-    view = RotateX(camRotUpAndOverDeg)*RotateY(-camRotSidewaysDeg)*Translate(viewDist*sin(-camRotSidewaysDeg*piradians),viewDist*sin(-camRotUpAndOverDeg*piradians),-viewDist*cos(camRotSidewaysDeg*piradians) - viewDist*cos(camRotUpAndOverDeg*piradians));
+   // view = RotateX(camRotUpAndOverDeg)*RotateY(-camRotSidewaysDeg)*Translate(viewDist*sin(-camRotSidewaysDeg*piradians),viewDist*sin(-camRotUpAndOverDeg*piradians),-viewDist*cos(camRotSidewaysDeg*piradians) - viewDist*cos(camRotUpAndOverDeg*piradians));
+    
+    view = Translate(0.0,0.0,-viewDist)* RotateX(camRotUpAndOverDeg)*RotateY(-camRotSidewaysDeg);
 
     SceneObject lightObj1 = sceneObjs[1];
     SceneObject lightObj2 = sceneObjs[2];
@@ -433,7 +435,7 @@ void display( void )
     for (int i=0; i < nObjects; i++) {
         SceneObject so = sceneObjs[i];
 
-        vec3 rgb = so.rgb * lightObj1.rgb * so.brightness * lightObj1.brightness * 2.0 * lightObj2.rgb * lightObj2.brightness;
+        vec3 rgb = so.rgb * lightObj1.rgb * so.brightness * lightObj1.brightness * 2.0;// * lightObj2.rgb * lightObj2.brightness;
         glUniform3fv( glGetUniformLocation(shaderProgram, "AmbientProduct"), 1, so.ambient * rgb );
         CheckError();
         glUniform3fv( glGetUniformLocation(shaderProgram, "DiffuseProduct"), 1, so.diffuse * rgb );
@@ -656,6 +658,18 @@ void keyboard( unsigned char key, int x, int y )
     }
 }
 
+void SpecialInput(int key, int x, int y)
+{
+    switch(key)
+    {
+        case GLUT_KEY_UP:
+            currObject++;
+            break;
+        case GLUT_KEY_DOWN:
+            currObject--;
+            break;
+    }
+}
 //----------------------------------------------------------------------------
 
 void idle( void )
@@ -700,8 +714,8 @@ void reshape( int width, int height )
 void timer(int unused)
 {
     char title[256];
-    sprintf(title, "%s %s: %d Frames Per Second @ %d x %d",
-                    lab, programName, numDisplayCalls, windowWidth, windowHeight );
+    sprintf(title, "%s %s: %d Frames Per Second @ %d x %d Current Object: %i",
+                    lab, programName, numDisplayCalls, windowWidth, windowHeight, currObject );
 
     glutSetWindowTitle(title);
 
@@ -760,6 +774,7 @@ int main( int argc, char* argv[] )
 
     glutDisplayFunc( display );
     glutKeyboardFunc( keyboard );
+    glutSpecialFunc(SpecialInput);
     glutIdleFunc( idle );
 
     glutMouseFunc( mouseClickOrScroll );
