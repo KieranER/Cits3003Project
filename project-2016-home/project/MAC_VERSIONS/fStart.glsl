@@ -64,8 +64,8 @@ void main()
     
     //vec3 Light1 = diffuse1.xyz + specular1.xyz;
     //vec3 Light2 = diffuse2.xyz + specular2.xyz;
-    vec4 color = (0.5*ambient + diffuse1 + specular1)/atten + globalAmbient;
-    color = color + (0.5*ambient + diffuse2 + specular2)/atten2;
+    vec4 color = ambient+(diffuse1 + specular1)/atten + globalAmbient;
+    color = color + (diffuse2 + specular2)/atten2;
     color.a = 1.0;
     gl_FragColor = color * texture2D( texture, texCoord * 2.0 );
 
