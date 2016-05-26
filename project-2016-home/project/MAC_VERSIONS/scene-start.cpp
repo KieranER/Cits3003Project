@@ -78,6 +78,9 @@ typedef struct {
     float moveSpeed;	// The speed an animated object will travel
     float moveDist; 	// twice the distance an animated object will travel before returning
     int numFrames;
+    int ispaused;       // whether the object is paused or not
+    float PAUSE_TIME;   // the time the object gets paused
+    float POSE_TIME;    // the time the object is running on.
 } SceneObject;
 
 const int maxObjects = 1024; // Scenes with more than 1024 objects seem unlikely
@@ -87,7 +90,13 @@ int nObjects = 0;    // How many objects are currenly in the scene.
 int currObject = -1; // The current object
 int toolObj = -1;    // The object currently being modified
 
-float POSE_TIME = 0.0;
+//float POSE_TIME = 0.0;
+
+
+
+//float PAUSE_TIME = 0.0;
+
+GLfloat currentTime = 0.0;
 
 //----------------------------------------------------------------------------
 //
@@ -286,6 +295,14 @@ static void addObject(int id)
 
     if (id!=0 && id!=55)
         sceneObjs[nObjects].scale = 0.005;
+    if(id == 56 || id == 57)
+    {
+        sceneObjs[nObjects].animStart = currentTime;
+        sceneObjs[nObjects].FPC = 5;
+        sceneObjs[nObjects].moveSpeed = 0.5;
+        sceneObjs[nObjects].moveDist = 0.25;
+    }
+    
 
     sceneObjs[nObjects].rgb[0] = 0.7; sceneObjs[nObjects].rgb[1] = 0.7;
     sceneObjs[nObjects].rgb[2] = 0.7; sceneObjs[nObjects].brightness = 1.0;
@@ -465,7 +482,7 @@ void drawMesh(SceneObject sceneObj)
     boneTransforms[i] = mat4(0.0);
     
     calculateAnimPose(meshes[sceneObj.meshId], scenes[sceneObj.meshId], 0,
-                      POSE_TIME, boneTransforms);
+                      sceneObjs[currObject].POSE_TIME, boneTransforms);
     glUniformMatrix4fv(uBoneTransforms, nBones, GL_TRUE,
                        (const GLfloat *)boneTransforms);
     //**************
@@ -479,6 +496,7 @@ void drawMesh(SceneObject sceneObj)
 
 void display( void )
 {
+    currentTime = glutGet(GLUT_ELAPSED_TIME);
     numDisplayCalls++;
 
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -515,7 +533,7 @@ void display( void )
         glUniform1f( glGetUniformLocation(shaderProgram, "Shininess"), so.shine );
         CheckError();
         
-        POSE_TIME = 1.0;
+        sceneObjs[i].POSE_TIME = fmod((currentTime/10.0),40) * sceneObjs[i].ispaused;
         vec4 displacement = 0.0;
         
         if ( sceneObjs[i].meshId > 55) {
@@ -530,20 +548,20 @@ void display( void )
             float period = sceneObjs[i].moveDist / sceneObjs[i].moveSpeed;		// The time taken to complete one movement cycle
             
             // POSE_TIME ranges from 0 to numFrames, looping FPC times in one half movement cycle
-            POSE_TIME = fmod((0.5 + 0.5 * sin(elapsedTime / period * 2 * PI))* sceneObjs[i].FPC * sceneObjs[i].numFrames, sceneObjs[i].numFrames);
+            //POSE_TIME = fmod((0.5 + 0.5 * sin(elapsedTime / period * 2 * PI))* sceneObjs[i].FPC * sceneObjs[i].numFrames, sceneObjs[i].numFrames);
             // displacement ranges from 0.5 moveDist to -0.5 moveDist in the direction the object is facing
             displacement =  RotateZ(sceneObjs[i].angles[2]) * RotateY(sceneObjs[i].angles[1]) * RotateX(sceneObjs[i].angles[0]) *
             vec4( 0.0, 0.0, - 0.5 * sceneObjs[i].moveDist * sin(elapsedTime / period * 2 * PI), 0.0);
             
             // The displacement is temporarily added to the object's location
-            sceneObjs[i].loc += displacement;
+            sceneObjs[i].loc += displacement*sceneObjs[currObject].ispaused;
             
             
         }
 
         drawMesh(sceneObjs[i]);
         
-        sceneObjs[i].loc -= displacement;
+        sceneObjs[i].loc -= displacement*sceneObjs[currObject].ispaused;
         
     }
 
@@ -756,6 +774,20 @@ void keyboard( unsigned char key, int x, int y )
     case 033:
         exit( EXIT_SUCCESS );
         break;
+            
+    case 32:
+        if(sceneObjs[currObject].ispaused == 1)
+        {
+            sceneObjs[currObject].PAUSE_TIME = sceneObjs[currObject].POSE_TIME;
+            sceneObjs[currObject].ispaused = 0;
+            break;
+        }
+        else if(sceneObjs[currObject].ispaused == 0)
+        {
+            sceneObjs[currObject].PAUSE_TIME = sceneObjs[currObject].PAUSE_TIME;
+            sceneObjs[currObject].ispaused = 1;
+            break;
+        }
     }
 }
 
