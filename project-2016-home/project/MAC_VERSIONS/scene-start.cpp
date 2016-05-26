@@ -295,12 +295,18 @@ static void addObject(int id)
 
     if (id!=0 && id!=55)
         sceneObjs[nObjects].scale = 0.005;
-    if(id == 56 || id == 57)
+    if(id == 56 || id == 57|| id == 58)
     {
         sceneObjs[nObjects].animStart = currentTime;
         sceneObjs[nObjects].FPC = 5;
         sceneObjs[nObjects].moveSpeed = 0.5;
-        sceneObjs[nObjects].moveDist = 0.25;
+        sceneObjs[nObjects].moveDist = 0.5
+        ;
+        if(id == 58)
+        {
+            sceneObjs[nObjects].moveDist = 2;
+            sceneObjs[nObjects].moveSpeed = 0.25;
+        }
     }
     
 
