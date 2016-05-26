@@ -25,7 +25,7 @@ void main()
     
     vec4 vpos = boneTransform * vec4(vPosition,1.0);
     
-    vec3 pos = (ModelView * vpos).xyz;
+    vec3 pos = (boneTransform * ModelView * vpos).xyz;
 
     vec4 Normal = boneTransform * vec4(vNormal,1.0);
     
