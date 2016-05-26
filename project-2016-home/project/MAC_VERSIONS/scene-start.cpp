@@ -316,6 +316,38 @@ static void removeObject()
     glutPostRedisplay();
 }
 
+//------Duplicate the most recently added object in the scene-----------------
+
+static void duplicateObject()
+{
+    vec2 currPos = currMouseXYworld(camRotSidewaysDeg);
+    sceneObjs[nObjects].loc[0] = currPos[0];
+    sceneObjs[nObjects].loc[1] = 0.0;
+    sceneObjs[nObjects].loc[2] = currPos[1];
+    sceneObjs[nObjects].loc[3] = 1.0;
+
+    sceneObjs[nObjects].scale = 0.005;
+
+    sceneObjs[nObjects].rgb[0] = 0.7; sceneObjs[nObjects].rgb[1] = 0.7;
+    sceneObjs[nObjects].rgb[2] = 0.7; sceneObjs[nObjects].brightness = 1.0;
+ 
+    sceneObjs[nObjects].diffuse = 1.0; sceneObjs[nObjects].specular = 0.5;
+    sceneObjs[nObjects].ambient = 0.7; sceneObjs[nObjects].shine = 10.0;
+ 
+    sceneObjs[nObjects].angles[0] = 0.0; sceneObjs[nObjects].angles[1] = 180.0;
+    sceneObjs[nObjects].angles[2] = 0.0;
+ 
+    sceneObjs[nObjects].meshId = sceneObjs[currObject].meshId;
+    sceneObjs[nObjects].texId = sceneObjs[currObject].texId;
+    sceneObjs[nObjects].texScale = 2.0;
+ 
+    toolObj = currObject = nObjects++;
+    setToolCallbacks(adjustLocXZ, camRotZ(),
+    adjustScaleY, mat2(0.05, 0, 0, 10.0) );
+    glutPostRedisplay();
+}
+
+
 //------The init function-----------------------------------------------------
 
 void init( void )
@@ -364,10 +396,10 @@ void init( void )
     sceneObjs[1].brightness = 0.2; // The light's brightness is 5 times this (below).
     
     addObject(55); //Sphere for the second light
-    sceneObjs[2].loc = vec4(1.0,2.0,2.0,2.0);
+    sceneObjs[2].loc = vec4(3.0,1.0,1.0,1.0);
     sceneObjs[2].scale = 0.1;
     sceneObjs[2].texId = 0;
-    sceneObjs[2].brightness = 0.2;
+    sceneObjs[2].brightness = 1.0;
 
     addObject(rand() % numMeshes); // A test mesh
 
@@ -455,7 +487,10 @@ void display( void )
     // Set the view matrix.  To start with this just moves the camera
     // backwards.  You'll need to add appropriate rotations.
 
-    view = RotateX(camRotUpAndOverDeg)*RotateY(-camRotSidewaysDeg)*Translate(viewDist*sin(-camRotSidewaysDeg*piradians),viewDist*sin(-camRotUpAndOverDeg*piradians),-viewDist*cos(camRotSidewaysDeg*piradians) - viewDist*cos(camRotUpAndOverDeg*piradians));
+   // view = RotateX(camRotUpAndOverDeg)*RotateY(-camRotSidewaysDeg)*Translate(viewDist*sin(-camRotSidewaysDeg*piradians),viewDist*sin(-camRotUpAndOverDeg*piradians),-viewDist*cos(camRotSidewaysDeg*piradians) - viewDist*cos(camRotUpAndOverDeg*piradians));
+    
+    //Better view function, works much better than the old one.
+    view = Translate(0.0,0.0,-viewDist)* RotateX(camRotUpAndOverDeg)*RotateY(-camRotSidewaysDeg);
 
     SceneObject lightObj1 = sceneObjs[1];
     SceneObject lightObj2 = sceneObjs[2];
@@ -674,6 +709,10 @@ static void mainmenu(int id)
     {
         removeObject();
     }
+    if(id == 6)
+    {
+        duplicateObject();
+    }
     if (id == 99) exit(0);
 }
 
@@ -698,6 +737,7 @@ static void makeMenu()
     glutAddMenuEntry("Rotate/Move Camera",50);
     glutAddSubMenu("Add object", objectId);
     glutAddMenuEntry("Remove Object", 5); //New
+    glutAddMenuEntry("Duplicate Object", 6); //New function
     glutAddMenuEntry("Position/Scale", 41);
     glutAddMenuEntry("Rotation/Texture Scale", 55);
     glutAddSubMenu("Material", materialMenuId);
@@ -716,6 +756,37 @@ void keyboard( unsigned char key, int x, int y )
     case 033:
         exit( EXIT_SUCCESS );
         break;
+    }
+}
+
+//----------------------------------------------------------------------------
+//Function that allows you to select your object using the up and down arrow keys
+//1 represents the first object placed in the scene 2 the second and so forth
+
+void SpecialInput(int key, int x, int y)
+{
+    switch(key)
+    {
+        case GLUT_KEY_UP:
+            if(currObject == nObjects)
+            {
+                currObject = currObject;
+            }
+            else
+            {
+                currObject++;
+            }
+            break;
+        case GLUT_KEY_DOWN:
+            if(currObject == 3)
+            {
+                currObject = 3;
+            }
+            else
+            {
+                currObject--;
+            }
+            break;
     }
 }
 
@@ -763,8 +834,8 @@ void reshape( int width, int height )
 void timer(int unused)
 {
     char title[256];
-    sprintf(title, "%s %s: %d Frames Per Second @ %d x %d",
-                    lab, programName, numDisplayCalls, windowWidth, windowHeight );
+    sprintf(title, "%s %s: %d Frames Per Second @ %d x %d Current Object: %i",
+                    lab, programName, numDisplayCalls, windowWidth, windowHeight, currObject-2 );
 
     glutSetWindowTitle(title);
 
@@ -823,6 +894,7 @@ int main( int argc, char* argv[] )
 
     glutDisplayFunc( display );
     glutKeyboardFunc( keyboard );
+    glutSpecialFunc(SpecialInput);
     glutIdleFunc( idle );
 
     glutMouseFunc( mouseClickOrScroll );
